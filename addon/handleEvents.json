@@ -1,0 +1,80 @@
+{
+    "sections": [
+        {
+            "title": "Slopless: Фильтрация ИИ-музыки",
+            "items": [
+                {
+                    "id": "locale",
+                    "name": "Язык меток / Language",
+                    "description": "Язык отображения бейджиков рядом с артистами.",
+                    "type": "selector",
+                    "selected": "0",
+                    "options": [
+                        {
+                            "name": "Русский",
+                            "id": "ru"
+                        },
+                        {
+                            "name": "English",
+                            "id": "en"
+                        }
+                    ]
+                },
+                {
+                    "id": "threshold",
+                    "name": "База для маркировки ИИ",
+                    "description": "Какие алгоритмы и базы использовать для определения сгенерированных треков.",
+                    "type": "selector",
+                    "selected": "0",
+                    "options": [
+                        {
+                            "name": "Deezer + Slopless (Рекомендуется)",
+                            "id": "any"
+                        },
+                        {
+                            "name": "Только Deezer (Любой % ИИ-релизов)",
+                            "id": "deezer_any"
+                        },
+                        {
+                            "name": "Только Deezer (Строгий: 100% ИИ-релизов)",
+                            "id": "deezer_100"
+                        }
+                    ]
+                },
+                {
+                    "id": "behavior",
+                    "name": "Действие при воспроизведении",
+                    "description": "Что должен сделать плеер, когда начинает играть ИИ-музыка?",
+                    "type": "selector",
+                    "selected": "0",
+                    "options": [
+                        {
+                            "key": "dislike",
+                            "name": "👎 Дизлайк и пропуск"
+                        },
+                        {
+                            "name": "👎 Дизлайк (если нет лайка)",
+                            "id": "dislike_if_not_liked"
+                        },
+                        {
+                            "name": "⏭ Просто пропустить",
+                            "id": "skip"
+                        },
+                        {
+                            "name": "⏭ Пропустить (если нет лайка)",
+                            "id": "skip_if_not_liked"
+                        },
+                        {
+                            "name": "👀 Ничего не делать (только бейджики)",
+                            "id": "nothing"
+                        },
+                        {
+                            "name": "❤️ Лайк",
+                            "id": "like"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
