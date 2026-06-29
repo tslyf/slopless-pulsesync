@@ -1,6 +1,6 @@
 import addonConfig from '../addon.config.mjs'
 import { Locale } from './locales'
-import { getAddonSettings, readOptionsSetting } from './pulsesync'
+import { getAddonSettings, readBooleanSetting, readOptionsSetting } from './pulsesync'
 
 export const DOM = {
     artistLinks: 'a[href*="/artist"]:not([class*="BlockHeader"])',
@@ -25,6 +25,7 @@ export function getSettings() {
             | 'nothing'
             | 'like',
         threshold: readOptionsSetting(settings, 'threshold', THRESHOLD_MAP, 'any') as 'any' | 'deezer_any' | 'deezer_100',
+        strictTracks: readBooleanSetting(settings, 'strictTracks', false),
     }
 }
 

@@ -4,49 +4,11 @@
             "title": "Slopless: Фильтрация ИИ-музыки",
             "items": [
                 {
-                    "id": "locale",
-                    "name": "Язык меток / Language",
-                    "description": "Язык отображения бейджиков рядом с артистами.",
-                    "type": "selector",
-                    "selected": "0",
-                    "options": [
-                        {
-                            "name": "Русский",
-                            "id": "ru"
-                        },
-                        {
-                            "name": "English",
-                            "id": "en"
-                        }
-                    ]
-                },
-                {
-                    "id": "threshold",
-                    "name": "База для маркировки ИИ",
-                    "description": "Какие алгоритмы и базы использовать для определения сгенерированных треков.",
-                    "type": "selector",
-                    "selected": "0",
-                    "options": [
-                        {
-                            "name": "Deezer + Slopless (Рекомендуется)",
-                            "id": "any"
-                        },
-                        {
-                            "name": "Только Deezer (Любой % ИИ-релизов)",
-                            "id": "deezer_any"
-                        },
-                        {
-                            "name": "Только Deezer (Строгий: 100% ИИ-релизов)",
-                            "id": "deezer_100"
-                        }
-                    ]
-                },
-                {
                     "id": "behavior",
                     "name": "Действие при воспроизведении",
                     "description": "Что должен сделать плеер, когда начинает играть ИИ-музыка?",
                     "type": "selector",
-                    "selected": "0",
+                    "value": "0",
                     "options": [
                         {
                             "key": "dislike",
@@ -72,7 +34,56 @@
                             "name": "❤️ Лайк",
                             "id": "like"
                         }
-                    ]
+                    ],
+                    "defaultValue": "0"
+                },
+                {
+                    "id": "threshold",
+                    "name": "База для маркировки ИИ",
+                    "description": "Какие алгоритмы и базы использовать для определения сгенерированных треков.",
+                    "type": "selector",
+                    "value": "0",
+                    "options": [
+                        {
+                            "name": "Deezer + Slopless (Рекомендуется)",
+                            "id": "any"
+                        },
+                        {
+                            "name": "Только Deezer (Любой % ИИ-релизов)",
+                            "id": "deezer_any"
+                        },
+                        {
+                            "name": "Только Deezer (Строгий: 100% ИИ-релизов)",
+                            "id": "deezer_100"
+                        }
+                    ],
+                    "defaultValue": "0"
+                },
+                {
+                    "id": "strictTracks",
+                    "name": "Проверять отдельные треки",
+                    "description": "Искать сгенерированные треки даже у «чистых» артистов.",
+                    "type": "button",
+                    "value": false,
+                    "defaultValue": false
+                },
+                {
+                    "id": "locale",
+                    "name": "Язык меток / Language",
+                    "description": "Язык отображения бейджиков рядом с артистами.",
+                    "type": "selector",
+                    "value": "0",
+                    "options": [
+                        {
+                            "name": "Русский",
+                            "id": "ru"
+                        },
+                        {
+                            "name": "English",
+                            "id": "en"
+                        }
+                    ],
+                    "defaultValue": "0"
                 }
             ]
         }

@@ -3,7 +3,7 @@ const addonConfig = {
     directoryName: 'slopless',
     name: 'Slopless',
     description: 'Очистите свою медиатеку от музыки, сгенерированной ИИ. Аддон помечает ИИ-треки и умеет автоматически их пропускать или дизлайкать.',
-    version: '1.0.0',
+    version: '1.1.0',
     author: ['slyf', 'alexeyfv'],
     type: 'script',
     image: 'Assets/logo.png',

@@ -48,6 +48,12 @@ export default class PlayerApiService {
             }
         }
 
+        if (!isAi && settings.strictTracks) {
+            if (await AiArtistsServiceInstance.hasDeezerTrack(trackId)) {
+                isAi = true
+            }
+        }
+
         if (!isAi) return
 
         const isLiked = api.isTrackLiked(trackId, albumId)

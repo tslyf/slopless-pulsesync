@@ -76,6 +76,11 @@ class AiArtistsService {
         return AiArtistsService.binarySearch(this.deezerArtists100!, Number(artistId))
     }
 
+    public async hasDeezerTrack(trackId: string): Promise<boolean> {
+        await this.ensureLoaded()
+        return AiArtistsService.binarySearch(this.deezerTracks!, Number(trackId))
+    }
+
     public async hasSlopless(artistId: string): Promise<boolean> {
         await this.ensureLoaded()
         return AiArtistsService.binarySearch(this.sloplessArtists!, Number(artistId))
