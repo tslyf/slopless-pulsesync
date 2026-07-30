@@ -3,13 +3,19 @@ export type Locale = 'ru' | 'en'
 const messages: Record<Locale, Record<string, string>> = {
     ru: {
         'artist.label': 'ИИ',
-        'tooltip.deezer': 'У этого артиста есть треки, созданные с помощью ИИ',
-        'tooltip.slopless': 'У этого артиста, скорее всего, есть треки, созданные с помощью ИИ',
+        'tooltip.ai': 'У этого артиста есть треки, созданные с помощью ИИ',
+        'track.label': 'ИИ',
+        'tooltip.track_ai': 'Этот трек создан с помощью ИИ',
+        'api_error.label': '⚠️ Slopless API',
+        'api_error.tooltip': 'Сервер slopless.art недоступен. Проверка и пропуск ИИ-треков временно не работают.',
     },
     en: {
         'artist.label': 'AI',
-        'tooltip.deezer': 'This artist has tracks that were generated with the use of AI',
-        'tooltip.slopless': 'This artist most probably has tracks that were generated with the use of AI',
+        'tooltip.ai': 'This artist has tracks that were generated with the use of AI',
+        'track.label': 'AI',
+        'tooltip.track_ai': 'This track was generated with the use of AI',
+        'api_error.label': '⚠️ Slopless API',
+        'api_error.tooltip': 'The slopless.art server is unreachable. AI track detection is temporarily disabled.',
     },
 }
 

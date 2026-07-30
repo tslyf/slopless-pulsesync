@@ -1,4 +1,4 @@
-import { AiArtistsServiceInstance } from './AiArtistsService'
+import SloplessApiService from './SloplessApiService'
 import { getSettings } from '../utils'
 
 export default class PlayerApiService {
@@ -32,24 +32,16 @@ export default class PlayerApiService {
 
         let isAi = false
         for (const id of artistIds) {
-            if (settings.threshold !== 'deezer_100') {
-                if (
-                    (await AiArtistsServiceInstance.hasDeezerArtist(id)) ||
-                    (settings.threshold === 'any' && (await AiArtistsServiceInstance.hasSlopless(id)))
-                ) {
-                    isAi = true
-                    break
-                }
-            } else {
-                if (await AiArtistsServiceInstance.hasDeezerArtist100(id)) {
-                    isAi = true
-                    break
-                }
+            if (await SloplessApiService.checkArtist(id, settings.artistThreshold)) {
+                isAi = true
+                break
             }
         }
 
         if (!isAi && settings.strictTracks) {
-            if (await AiArtistsServiceInstance.hasDeezerTrack(trackId)) {
+            if (await SloplessApiService.checkTrack(trackId)) {
+                isAi = true
+            } else if (albumId && await SloplessApiService.checkAlbum(albumId, settings.artistThreshold)) {
                 isAi = true
             }
         }

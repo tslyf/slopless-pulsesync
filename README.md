@@ -1,6 +1,6 @@
 # Slopless for PulseSync
 
-[![PulseSync Addon](https://img.shields.io/badge/PulseSync-Addon-8B5CF6?style=flat-square&logo=yamusic)](https://github.com/PulseSync) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE) [![Latest Release](https://img.shields.io/github/v/release/tslyf/slopless-pulsesync?style=flat-square&color=8B5CF6&label=release)](https://github.com/tslyf/slopless-pulsesync/releases/latest) [![Database Version](https://img.shields.io/badge/Database-v0.2.0-success?style=flat-square)](#)
+[![PulseSync Addon](https://img.shields.io/badge/PulseSync-Addon-8B5CF6?style=flat-square&logo=yamusic)](https://github.com/PulseSync) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE) [![Latest Release](https://img.shields.io/github/v/release/tslyf/slopless-pulsesync?style=flat-square&color=8B5CF6&label=release)](https://github.com/tslyf/slopless-pulsesync/releases/latest) [![API Status](https://img.shields.io/website?url=https%3A%2F%2Fslopless.art%2Fapi%2Fhome&up_message=online&down_message=offline&label=API)](https://slopless.art)
 
 ![Slopless Banner](./addon/Assets/banner.png)
 
@@ -8,7 +8,7 @@
 
 ## О проекте
 
-Медиатека Яндекса всё чаще пополняется музыкой, полностью сгенерированной нейросетями. Этот аддон позволяет очистить ваш музыкальный поток от такого контента. Скрипт помечает ИИ-артистов специальными бейджами и умеет автоматически пропускать или ставить дизлайк сгенерированным трекам.
+Медиатека Яндекса всё чаще пополняется музыкой, полностью сгенерированной нейросетями. Этот аддон позволяет очистить ваш музыкальный поток от такого контента. Скрипт помечает ИИ-артистов и отдельные ИИ-треки специальными бейджами, а также умеет автоматически пропускать или ставить дизлайк сгенерированным релизам. Работает через API оригинального проекта.
 
 ---
 
@@ -25,13 +25,13 @@
 
 ## Настройки
 
-После установки в настройках PulseSync появится раздел **Slopless**, где можно детально настроить поведение аддона.
-
-| Параметр | Описание | Доступные значения |
-| :--- | :--- | :--- |
-| **Режим** | Что делать, если заиграл ИИ-трек? | `Дизлайк и пропуск`, `Дизлайк (если нет лайка)`, `Просто пропуск`, `Пропустить (если нет лайка)`, `Ничего не делать`, `Лайк` |
-| **Чувствительность** | Насколько строго фильтровать треки? | `Все базы` (Slopless + Deezer), `Только Deezer`, `Строгий Deezer (100% ИИ)` |
-| **Язык** | Язык бейджей и подсказок | `Русский`, `English` |
+| Параметр | Описание |
+| :--- | :--- |
+| **Действие при воспроизведении** | Что делать, если заиграл ИИ-трек: дизлайк, пропуск, ничего не делать или лайк. |
+| **Проверять отдельные треки** | Искать сгенерированные треки даже у «чистых» артистов. |
+| **Порог «ИИ-шности» артиста** | Какой процент треков артиста должен быть от ИИ, чтобы считать его нейро-артистом (рекомендуется 5%). |
+| **Помечать ИИ-артистов / треки** | Включение и отключение визуальных красных меток в интерфейсе Яндекса. |
+| **Язык** | Язык бейджей и всплывающих подсказок (Русский / English). |
 
 ---
 
@@ -48,11 +48,11 @@
 
 ## Благодарности
 
-Вся база данных и изначальная идея принадлежат автору оригинального проекта:
+Серверное API и изначальная идея принадлежат автору оригинального проекта:
 * [Slopless by alexeyfv](https://github.com/alexeyfv/slopless)
 
 ---
 
 ## Лицензия
 
-Этот проект распространяется под лицензией MIT. Подробности см. в файле [LICENSE](LICENSE). База данных подтягивается напрямую из репозитория оригинального проекта.
+Этот проект распространяется под лицензией GNU GPLv3. Подробности см. в файле [LICENSE](LICENSE). Данные для анализа запрашиваются напрямую с серверов оригинального проекта.

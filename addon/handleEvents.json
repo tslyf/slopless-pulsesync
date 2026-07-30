@@ -1,7 +1,7 @@
 {
     "sections": [
         {
-            "title": "Slopless: Фильтрация ИИ-музыки",
+            "title": "Поведение плеера",
             "items": [
                 {
                     "id": "behavior",
@@ -38,28 +38,6 @@
                     "defaultValue": "0"
                 },
                 {
-                    "id": "threshold",
-                    "name": "База для маркировки ИИ",
-                    "description": "Какие алгоритмы и базы использовать для определения сгенерированных треков.",
-                    "type": "selector",
-                    "value": "0",
-                    "options": [
-                        {
-                            "name": "Deezer + Slopless (Рекомендуется)",
-                            "id": "any"
-                        },
-                        {
-                            "name": "Только Deezer (Любой % ИИ-релизов)",
-                            "id": "deezer_any"
-                        },
-                        {
-                            "name": "Только Deezer (Строгий: 100% ИИ-релизов)",
-                            "id": "deezer_100"
-                        }
-                    ],
-                    "defaultValue": "0"
-                },
-                {
                     "id": "strictTracks",
                     "name": "Проверять отдельные треки",
                     "description": "Искать сгенерированные треки даже у «чистых» артистов.",
@@ -68,9 +46,41 @@
                     "defaultValue": false
                 },
                 {
+                    "id": "artistThreshold",
+                    "name": "Порог «ИИ-шности» артиста (%)",
+                    "description": "Какой процент треков артиста должен быть от ИИ, чтобы считать его нейро-артистом (рекомендуется 5%).",
+                    "type": "slider",
+                    "min": 1,
+                    "max": 100,
+                    "step": 1,
+                    "value": 5,
+                    "defaultValue": 5
+                }
+            ]
+        },
+        {
+            "title": "Визуальные метки ИИ",
+            "items": [
+                {
+                    "id": "showArtistLabels",
+                    "name": "Помечать ИИ-артистов",
+                    "description": "Показывать метку «ИИ» рядом с именами артистов.",
+                    "type": "button",
+                    "value": true,
+                    "defaultValue": true
+                },
+                {
+                    "id": "showTrackLabels",
+                    "name": "Помечать ИИ-треки",
+                    "description": "Показывать метку «ИИ» рядом с названиями треков.",
+                    "type": "button",
+                    "value": true,
+                    "defaultValue": true
+                },
+                {
                     "id": "locale",
                     "name": "Язык меток / Language",
-                    "description": "Язык отображения бейджиков рядом с артистами.",
+                    "description": "Язык всплывающих подсказок у бейджиков.",
                     "type": "selector",
                     "value": "0",
                     "options": [
