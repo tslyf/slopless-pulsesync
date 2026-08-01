@@ -41,7 +41,7 @@ export default class PlayerApiService {
         if (!isAi && settings.strictTracks) {
             if (await SloplessApiService.checkTrack(trackId)) {
                 isAi = true
-            } else if (albumId && await SloplessApiService.checkAlbum(albumId, settings.artistThreshold)) {
+            } else if (albumId && (await SloplessApiService.checkAlbum(albumId, settings.artistThreshold))) {
                 isAi = true
             }
         }

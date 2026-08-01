@@ -21,7 +21,7 @@ export function getAddonSettings(addonName: string): AddonSettingsStore {
         // @ts-ignore
         window.pulsesyncApi?.getSettings(addonName) ?? {
             getCurrent: () => ({}),
-            onChange: () => () => { },
+            onChange: () => () => {},
         }
     )
 }
@@ -40,6 +40,6 @@ export function readOptionsSetting(settings: AddonSettings, key: string, options
 }
 
 export function readNumberSetting(settings: any, key: string, fallback: number): number {
-    const val = Number(unwrapSetting(settings[key], fallback));
-    return isNaN(val) ? fallback : val;
+    const val = Number(unwrapSetting(settings[key], fallback))
+    return isNaN(val) ? fallback : val
 }

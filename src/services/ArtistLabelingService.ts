@@ -55,7 +55,7 @@ export default class ArtistLabelingService {
             uniqueIds.map(async id => {
                 const isAi = await SloplessApiService.checkArtist(id, settings.artistThreshold)
                 aiStatusMap.set(id, isAi)
-            })
+            }),
         )
 
         for (const { element, id } of validArtists) {
@@ -82,7 +82,7 @@ export default class ArtistLabelingService {
             uniqueIds.map(async id => {
                 const isAi = await SloplessApiService.checkTrack(id)
                 aiStatusMap.set(id, isAi)
-            })
+            }),
         )
 
         for (const { element, id } of validTracks) {
