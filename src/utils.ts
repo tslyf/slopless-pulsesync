@@ -28,7 +28,7 @@ export function getSettings() {
         showArtistLabels: readBooleanSetting(settings, 'showArtistLabels', true),
         showTrackLabels: readBooleanSetting(settings, 'showTrackLabels', true),
 
-        artistThreshold: readNumberSetting(settings, 'artistThreshold', 5) / 100,
+        artistThreshold: readNumberSetting(settings, 'artistThreshold', 10) / 100,
     }
 }
 

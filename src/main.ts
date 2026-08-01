@@ -1,8 +1,11 @@
+import { runVirtualMigration } from './migration'
 import ArtistLabelingService from './services/ArtistLabelingService'
 import PlayerApiService from './services/PlayerApiService'
 
 async function initSlopless() {
     console.log('[Slopless] Initializing addon...')
+
+    runVirtualMigration()
 
     const labelingService = new ArtistLabelingService()
     await labelingService.start()
