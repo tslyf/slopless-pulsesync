@@ -8,14 +8,25 @@ interface CacheItem {
 const cache = new Map<string, CacheItem>()
 const pendingRequests = new Map<string, Promise<any>>()
 
+const CACHE_TTL_SUCCESS = 60 * 60 * 1000
+const CACHE_TTL_ERROR = 30 * 1000
+const MAX_CACHE_SIZE = 1000
+
 export default class SloplessApiService {
     private static async fetchWithCache(key: string, url: string) {
         if (cache.has(key)) {
             const item = cache.get(key)!
-            if (Date.now() - item.timestamp < 3600000) return item.data
+            const ttl = item.data == null ? CACHE_TTL_ERROR : CACHE_TTL_SUCCESS
+
+            if (Date.now() - item.timestamp < ttl) return item.data
             cache.delete(key)
         }
         if (pendingRequests.has(key)) return pendingRequests.get(key)
+
+        if (cache.size >= MAX_CACHE_SIZE) {
+            const oldestKey = cache.keys().next().value
+            if (oldestKey) cache.delete(oldestKey)
+        }
 
         const request = fetch(url)
             .then(res => {
