@@ -33,7 +33,12 @@ export default class ArtistLabelingService {
         const elements = [...titleElements, ...linksElements]
 
         const artists: ElementInfo[] = elements
-            .map(el => ({ element: el, id: extractArtistId(el instanceof HTMLAnchorElement ? el.href : location.href) || '' }))
+            .filter(el => !el.dataset.sloplessScanned)
+            .map(el => {
+                el.dataset.sloplessScanned = 'true'
+                const id = extractArtistId(el instanceof HTMLAnchorElement ? el.href : location.href) || ''
+                return { element: el, id: id }
+            })
             .filter(a => a.id !== '0' && a.id !== '')
 
         const vibeSpans = Array.from(document.querySelectorAll<HTMLElement>(DOM.separatedArtists))
@@ -49,20 +54,27 @@ export default class ArtistLabelingService {
         if (validArtists.length === 0) return
 
         const uniqueIds = Array.from(new Set(validArtists.map(a => a.id)))
-        const aiStatusMap = new Map<string, boolean>()
+        const aiStatusMap = new Map<string, any>()
 
         await Promise.all(
             uniqueIds.map(async id => {
-                const isAi = await SloplessApiService.checkArtist(id, settings.artistThreshold)
-                aiStatusMap.set(id, isAi)
+                aiStatusMap.set(id, await SloplessApiService.checkArtist(id, settings.artistThreshold))
             }),
         )
 
         for (const { element, id } of validArtists) {
-            if (!aiStatusMap.get(id)) continue
+            const stats = aiStatusMap.get(id)
+            if (!stats || !stats.isAi) continue
             if (element.querySelector(`span.${this.SLOPLESS_LABEL}`)) continue
 
-            element.insertAdjacentElement('beforeend', this.createLabel(settings.locale, 'artist'))
+            element.insertAdjacentElement(
+                'beforeend',
+                this.createLabel(settings.locale, 'artist', {
+                    ai: stats.aiTracks,
+                    total: stats.totalTracks,
+                    percent: stats.percent,
+                }),
+            )
         }
     }
 
@@ -70,30 +82,39 @@ export default class ArtistLabelingService {
         const linksElements = Array.from(document.querySelectorAll<HTMLAnchorElement>(DOM.trackLinks))
 
         const validTracks: ElementInfo[] = linksElements
-            .map(el => ({ element: el, id: extractTrackId(el.href) || '' }))
+            .filter(el => !el.dataset.sloplessScanned)
+            .map(el => {
+                el.dataset.sloplessScanned = 'true'
+                return { element: el, id: extractTrackId(el.href) || '' }
+            })
             .filter(t => t.id !== '0' && t.id !== '')
 
         if (validTracks.length === 0) return
 
         const uniqueIds = Array.from(new Set(validTracks.map(t => t.id)))
-        const aiStatusMap = new Map<string, boolean>()
+        const aiStatusMap = new Map<string, any>()
 
         await Promise.all(
             uniqueIds.map(async id => {
-                const isAi = await SloplessApiService.checkTrack(id)
-                aiStatusMap.set(id, isAi)
+                aiStatusMap.set(id, await SloplessApiService.checkTrack(id))
             }),
         )
 
         for (const { element, id } of validTracks) {
-            if (!aiStatusMap.get(id)) continue
+            const stats = aiStatusMap.get(id)
+            if (!stats || !stats.isAi) continue
             if (element.querySelector(`span.${this.SLOPLESS_LABEL}`)) continue
 
-            element.insertAdjacentElement('beforeend', this.createLabel(settings.locale, 'track'))
+            element.insertAdjacentElement(
+                'beforeend',
+                this.createLabel(settings.locale, 'track', {
+                    score: stats.score,
+                }),
+            )
         }
     }
 
-    protected createLabel(locale: Locale, type: 'artist' | 'track') {
+    protected createLabel(locale: Locale, type: 'artist' | 'track', params?: Record<string, string | number>) {
         const borderColor = 'rgb(239 68 68)'
         const bgColor = 'rgba(239 68 68 / 0.12)'
         const textColor = 'rgb(239 68 68)'
@@ -102,7 +123,7 @@ export default class ArtistLabelingService {
         span.className = this.SLOPLESS_LABEL
         span.textContent = t(locale, type === 'artist' ? 'artist.label' : 'track.label')
         span.style.cssText = `margin: 0 6px; padding: 0 6px; border: 1px solid ${borderColor}; border-radius: 4px; background: ${bgColor}; color: ${textColor}; font-size: smaller;`
-        span.title = t(locale, type === 'artist' ? 'tooltip.ai' : 'tooltip.track_ai')
+        span.title = t(locale, type === 'artist' ? 'tooltip.ai' : 'tooltip.track_ai', params)
 
         return span
     }

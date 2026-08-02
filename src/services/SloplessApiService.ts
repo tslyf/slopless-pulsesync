@@ -51,30 +51,33 @@ export default class SloplessApiService {
         return request
     }
 
-    public static async checkArtist(artistId: string, customThreshold: number): Promise<boolean> {
+    public static async checkArtist(artistId: string, customThreshold: number) {
         const data = await this.fetchWithCache(`artist_${artistId}`, `${API_BASE}/artist/${artistId}`)
-        if (!data) return false
+        if (!data || data.totalTracks === 0) return { isAi: false }
 
-        if (data.totalTracks > 0) {
-            return data.aiTracks / data.totalTracks >= customThreshold
+        const percent = data.aiTracks / data.totalTracks
+        return {
+            isAi: percent >= customThreshold,
+            aiTracks: data.aiTracks,
+            totalTracks: data.totalTracks,
+            percent: Math.round(percent * 100),
         }
-        return false
     }
 
-    public static async checkTrack(trackId: string): Promise<boolean> {
+    public static async checkTrack(trackId: string) {
         const data = await this.fetchWithCache(`track_${trackId}`, `${API_BASE}/track/${trackId}`)
-        if (!data) return false
+        if (!data || data.score === null) return { isAi: false }
 
-        return data.score !== null && data.score > AI_TRACK_THRESHOLD
+        return {
+            isAi: data.score > AI_TRACK_THRESHOLD,
+            score: Math.round(data.score * 100),
+        }
     }
 
-    public static async checkAlbum(albumId: string, customThreshold: number): Promise<boolean> {
+    public static async checkAlbum(albumId: string, customThreshold: number) {
         const data = await this.fetchWithCache(`album_${albumId}`, `${API_BASE}/album/${albumId}`)
-        if (!data) return false
+        if (!data || data.totalTracks === 0) return { isAi: false }
 
-        if (data.totalTracks > 0) {
-            return data.aiTracks / data.totalTracks >= customThreshold
-        }
-        return false
+        return { isAi: data.aiTracks / data.totalTracks >= customThreshold }
     }
 }

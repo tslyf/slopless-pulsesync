@@ -31,18 +31,22 @@ export default class PlayerApiService {
         const artistIds = trackMeta.artists.map((a: any) => String(a.id))
 
         let isAi = false
+
         for (const id of artistIds) {
-            if (await SloplessApiService.checkArtist(id, settings.artistThreshold)) {
+            const res = await SloplessApiService.checkArtist(id, settings.artistThreshold)
+            if (res.isAi) {
                 isAi = true
                 break
             }
         }
 
         if (!isAi && settings.strictTracks) {
-            if (await SloplessApiService.checkTrack(trackId)) {
+            const trackRes = await SloplessApiService.checkTrack(trackId)
+            if (trackRes.isAi) {
                 isAi = true
-            } else if (albumId && (await SloplessApiService.checkAlbum(albumId, settings.artistThreshold))) {
-                isAi = true
+            } else if (albumId) {
+                const albumRes = await SloplessApiService.checkAlbum(albumId, settings.artistThreshold)
+                if (albumRes.isAi) isAi = true
             }
         }
 
@@ -52,6 +56,9 @@ export default class PlayerApiService {
 
         const delay = Math.floor(Math.random() * 500) + 300
         await new Promise(resolve => setTimeout(resolve, delay))
+
+        const currentTrackId = String(api.getCurrentTrack()?.id)
+        if (currentTrackId !== trackId) return
 
         const { behavior } = settings
 
