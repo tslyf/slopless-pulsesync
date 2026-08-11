@@ -31,16 +31,31 @@ export default class PlayerApiService {
         const artistIds = trackMeta.artists.map((a: any) => String(a.id))
 
         let isAi = false
+        const mode = settings.detectionMode
 
-        for (const id of artistIds) {
-            const res = await SloplessApiService.checkArtist(id, settings.artistThreshold)
-            if (res.isAi) {
-                isAi = true
-                break
+        let hasAnyAiAuthor = false
+        let allAuthorsAreAi = true
+
+        if (mode !== 'track_only' && artistIds.length > 0) {
+            for (const id of artistIds) {
+                const res = await SloplessApiService.checkArtist(id, settings.artistThreshold)
+                if (res.isAi) {
+                    hasAnyAiAuthor = true
+                } else {
+                    allAuthorsAreAi = false
+                }
+
+                if (mode === 'paranoid' && hasAnyAiAuthor) break
             }
+        } else {
+            allAuthorsAreAi = false
         }
 
-        if (!isAi && settings.strictTracks) {
+        if (mode === 'paranoid' && hasAnyAiAuthor) {
+            isAi = true
+        } else if (mode === 'balance' && allAuthorsAreAi) {
+            isAi = true
+        } else {
             const trackRes = await SloplessApiService.checkTrack(trackId)
             if (trackRes.isAi) {
                 isAi = true

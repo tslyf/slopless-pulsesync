@@ -13,17 +13,19 @@ export const DOM = {
 }
 
 export type AiMusicBehavior = 'dislike' | 'dislike_if_not_liked' | 'skip' | 'skip_if_not_liked' | 'nothing' | 'like'
+export type DetectionMode = 'paranoid' | 'balance' | 'track_only'
 
 export function getSettings() {
     const LOCALE_MAP = ['ru', 'en']
     const BEHAVIOR_MAP = ['dislike', 'dislike_if_not_liked', 'skip', 'skip_if_not_liked', 'nothing', 'like']
+    const DETECTION_MODE_MAP = ['paranoid', 'balance', 'track_only']
 
     const settings = getAddonSettings(addonConfig.name).getCurrent()
 
     return {
         locale: readOptionsSetting(settings, 'locale', LOCALE_MAP, 'ru') as Locale,
         behavior: readOptionsSetting(settings, 'behavior', BEHAVIOR_MAP, 'dislike') as AiMusicBehavior,
-        strictTracks: readBooleanSetting(settings, 'strictTracks', false),
+        detectionMode: readOptionsSetting(settings, 'detectionMode', DETECTION_MODE_MAP, 'balance') as DetectionMode,
 
         showArtistLabels: readBooleanSetting(settings, 'showArtistLabels', true),
         showTrackLabels: readBooleanSetting(settings, 'showTrackLabels', true),

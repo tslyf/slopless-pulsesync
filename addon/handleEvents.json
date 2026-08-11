@@ -38,12 +38,26 @@
                     "defaultValue": "0"
                 },
                 {
-                    "id": "strictTracks",
-                    "name": "Проверять отдельные треки",
-                    "description": "Искать сгенерированные треки даже у «чистых» артистов.",
-                    "type": "button",
-                    "value": false,
-                    "defaultValue": false
+                    "id": "detectionMode",
+                    "name": "Условие определения ИИ",
+                    "description": "По каким критериям плагин решает, что песню нужно заблокировать.",
+                    "type": "selector",
+                    "value": "1",
+                    "options": [
+                        {
+                            "name": "Строго: трек ИЛИ хотя бы один из авторов — ИИ",
+                            "id": "paranoid"
+                        },
+                        {
+                            "name": "Баланс: трек ИЛИ все авторы — ИИ",
+                            "id": "balance"
+                        },
+                        {
+                            "name": "Мягко: проверять только сам трек",
+                            "id": "track_only"
+                        }
+                    ],
+                    "defaultValue": "1"
                 },
                 {
                     "id": "artistThreshold",
