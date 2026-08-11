@@ -1,12 +1,17 @@
 import SloplessApiService from './SloplessApiService'
 import { t, type Locale } from '../locales'
-import { DOM, extractArtistId, extractTrackId, getSettings } from '../utils'
+import { DOM, extractArtistId, extractTrackId, getSettings, SCANNED_ATTR, unscanned } from '../utils'
 import { getAddonSettings } from '@/pulsesync'
 import addonConfig from '../../addon.config.mjs'
 
 export type ElementInfo = {
     element: HTMLElement
     id: string
+}
+
+export type TrackElementInfo = ElementInfo & {
+    artistIds: string[]
+    hideBadge?: boolean
 }
 
 export default class ArtistLabelingService {
@@ -24,21 +29,43 @@ export default class ArtistLabelingService {
 
     protected async scan() {
         const settings = getSettings()
-        const tasks: Promise<void>[] = []
+
+        const newArtistEls = Array.from(
+            document.querySelectorAll<HTMLElement>(unscanned(DOM.artistProfileTitle, DOM.artistLinks, DOM.separatedArtists)),
+        )
+
+        const newTrackEls = Array.from(document.querySelectorAll<HTMLElement>(unscanned(DOM.trackLinks)))
+        const playerTrackEls = Array.from(document.querySelectorAll<HTMLElement>(DOM.playerTrackTitle))
+        const vibeTrackNode = document.querySelector<HTMLElement>(DOM.vibeTrackName)
+
+        const allTrackEls = Array.from(new Set([...newTrackEls, ...playerTrackEls]))
+        if (vibeTrackNode && !allTrackEls.includes(vibeTrackNode)) {
+            allTrackEls.push(vibeTrackNode)
+        }
+
+        if (newArtistEls.length === 0 && allTrackEls.length === 0) {
+            if (!settings.showArtistLabels) this.clearLabels('artist')
+            if (!settings.showTrackLabels) this.clearLabels('track')
+            return
+        }
+
+        newArtistEls.forEach(el => (el.dataset.sloplessScanned = 'true'))
+        newTrackEls.forEach(el => (el.dataset.sloplessScanned = 'true'))
+
+        const artistsToProcess = this.extractArtists(newArtistEls)
+        const tracksToProcess = this.extractTracks(allTrackEls)
 
         if (settings.showArtistLabels) {
-            tasks.push(this.scanArtists(settings))
+            await this.processArtists(artistsToProcess, settings)
         } else {
             this.clearLabels('artist')
         }
 
         if (settings.showTrackLabels) {
-            tasks.push(this.scanTracks(settings))
+            await this.processTracks(tracksToProcess, settings)
         } else {
             this.clearLabels('track')
         }
-
-        await Promise.all(tasks)
     }
 
     protected injectStyles() {
@@ -54,34 +81,75 @@ export default class ArtistLabelingService {
         document.head.appendChild(style)
     }
 
-    protected async scanArtists(settings: ReturnType<typeof getSettings>) {
-        const titleElements = Array.from(document.querySelectorAll<HTMLElement>(DOM.artistProfileTitle))
-        const linksElements = Array.from(document.querySelectorAll<HTMLAnchorElement>(DOM.artistLinks))
+    private extractArtists(elements: HTMLElement[]): ElementInfo[] {
+        const artists: ElementInfo[] = []
+        const vibeSpans: HTMLElement[] = []
 
-        const elements = [...titleElements, ...linksElements]
-
-        const artists: ElementInfo[] = elements
-            .filter(el => !el.dataset.sloplessScanned)
-            .map(el => {
-                el.dataset.sloplessScanned = 'true'
+        elements.forEach(el => {
+            if (el.matches(DOM.separatedArtists)) {
+                vibeSpans.push(el)
+            } else {
                 const id = extractArtistId(el instanceof HTMLAnchorElement ? el.href : location.href) || ''
-                return { element: el, id: id }
-            })
-            .filter(a => a.id !== '0' && a.id !== '')
+                if (id !== '0' && id !== '') artists.push({ element: el, id })
+            }
+        })
 
-        const vibeSpans = Array.from(document.querySelectorAll<HTMLElement>(DOM.separatedArtists))
-        // @ts-ignore
-        const apiArtists = window.pulsesyncApi?.getCurrentTrack()?.artists || []
-
-        if (vibeSpans.length > 0 && vibeSpans.length === apiArtists.length) {
-            vibeSpans.forEach((span, index) => {
-                artists.push({ element: span, id: String(apiArtists[index].id) })
-            })
+        if (vibeSpans.length > 0) {
+            // @ts-ignore
+            const apiArtists = window.pulsesyncApi?.getCurrentTrack()?.artists || []
+            if (vibeSpans.length === apiArtists.length) {
+                vibeSpans.forEach((span, index) => {
+                    artists.push({ element: span, id: String(apiArtists[index].id) })
+                })
+            }
         }
-        const validArtists = artists.filter(a => a.id !== '0' && a.id !== '')
-        if (validArtists.length === 0) return
+        return artists
+    }
 
-        const uniqueIds = Array.from(new Set(validArtists.map(a => a.id)))
+    private extractTracks(elements: HTMLElement[]): TrackElementInfo[] {
+        const tracks: TrackElementInfo[] = []
+
+        elements.forEach(el => {
+            let id = ''
+            let artistIds: string[] = []
+            let isVibe = false
+
+            if (el.matches(DOM.vibeTrackName)) {
+                // @ts-ignore
+                const currentTrack = window.pulsesyncApi?.getCurrentTrack()
+                id = currentTrack ? String(currentTrack.id) : ''
+                artistIds = currentTrack?.artists?.map((a: any) => String(a.id)) || []
+                isVibe = true
+            } else if (el instanceof HTMLAnchorElement) {
+                id = extractTrackId(el.href) || ''
+                const container = el.closest(DOM.trackContainer) || el.parentElement?.parentElement?.parentElement
+                if (container) {
+                    const artistNodes = Array.from(container.querySelectorAll<HTMLAnchorElement>(DOM.artistLinks))
+                    artistIds = artistNodes.map(a => extractArtistId(a.href)).filter(Boolean) as string[]
+                }
+            }
+
+            if (!id || id === '0') return
+
+            if (el.dataset.sloplessTrackId !== id) {
+                el.dataset.sloplessTrackId = id
+                el.dataset.sloplessScanned = 'true'
+
+                el.classList.remove('slopless-text-highlight')
+                const oldLabel = el.querySelector(`.slopless-label-track`)
+                if (oldLabel) oldLabel.remove()
+
+                tracks.push({ element: el, id, artistIds, hideBadge: isVibe })
+            }
+        })
+
+        return tracks
+    }
+
+    private async processArtists(artists: ElementInfo[], settings: ReturnType<typeof getSettings>) {
+        if (artists.length === 0) return
+
+        const uniqueIds = Array.from(new Set(artists.map(a => a.id)))
         const aiStatusMap = new Map<string, any>()
 
         await Promise.all(
@@ -90,7 +158,9 @@ export default class ArtistLabelingService {
             }),
         )
 
-        for (const { element, id } of validArtists) {
+        for (const { element, id } of artists) {
+            if (!document.body.contains(element)) continue
+
             const stats = aiStatusMap.get(id)
             if (!stats || !stats.isAi) continue
             if (element.querySelector(`span.${this.SLOPLESS_LABEL}`)) continue
@@ -108,41 +178,38 @@ export default class ArtistLabelingService {
         }
     }
 
-    protected async scanTracks(settings: ReturnType<typeof getSettings>) {
-        const linksElements = Array.from(document.querySelectorAll<HTMLAnchorElement>(DOM.trackLinks))
+    private async processTracks(tracks: TrackElementInfo[], settings: ReturnType<typeof getSettings>) {
+        if (tracks.length === 0) return
 
-        const validTracks: ElementInfo[] = linksElements
-            .filter(el => !el.dataset.sloplessScanned)
-            .map(el => {
-                el.dataset.sloplessScanned = 'true'
-                return { element: el, id: extractTrackId(el.href) || '' }
-            })
-            .filter(t => t.id !== '0' && t.id !== '')
+        const uniqueTracksMap = new Map<string, string[]>()
+        tracks.forEach(t => {
+            if (!uniqueTracksMap.has(t.id)) uniqueTracksMap.set(t.id, t.artistIds)
+        })
 
-        if (validTracks.length === 0) return
-
-        const uniqueIds = Array.from(new Set(validTracks.map(t => t.id)))
         const aiStatusMap = new Map<string, any>()
 
         await Promise.all(
-            uniqueIds.map(async id => {
-                aiStatusMap.set(id, await SloplessApiService.checkTrack(id))
+            Array.from(uniqueTracksMap.entries()).map(async ([id, artistIds]) => {
+                aiStatusMap.set(id, await SloplessApiService.checkTrack(id, artistIds))
             }),
         )
 
-        for (const { element, id } of validTracks) {
+        for (const { element, id, hideBadge } of tracks) {
+            if (!document.body.contains(element)) continue
+
             const stats = aiStatusMap.get(id)
             if (!stats || !stats.isAi) continue
-            if (element.querySelector(`span.${this.SLOPLESS_LABEL}`)) continue
 
             element.classList.add('slopless-text-highlight')
 
-            element.insertAdjacentElement(
-                'beforeend',
-                this.createLabel(settings.locale, 'track', {
-                    score: stats.score,
-                }),
-            )
+            if (!hideBadge && !element.querySelector(`span.${this.SLOPLESS_LABEL}`)) {
+                element.insertAdjacentElement(
+                    'beforeend',
+                    this.createLabel(settings.locale, 'track', {
+                        score: stats.score,
+                    }),
+                )
+            }
         }
     }
 
@@ -153,7 +220,7 @@ export default class ArtistLabelingService {
         labels.forEach(label => {
             const parent = label.parentElement
             if (parent) {
-                parent.removeAttribute('data-slopless-scanned')
+                parent.removeAttribute(SCANNED_ATTR)
                 parent.classList.remove('slopless-text-highlight')
             }
             label.remove()
@@ -176,12 +243,18 @@ export default class ArtistLabelingService {
 
     public async start() {
         this.injectStyles()
-        await this.scan()
+        this.debouncedScan()
 
         const observer = new MutationObserver(() => {
             this.debouncedScan()
         })
-        observer.observe(document.body, { childList: true, subtree: true })
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['href'],
+            characterData: true,
+        })
 
         try {
             const settingsStore = getAddonSettings(addonConfig.name)

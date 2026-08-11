@@ -10,7 +10,11 @@ export const DOM = {
     artistProfileTitle: 'h1[class*="page-artist__title"], span[class*="PageHeaderTitle_title__"], span[class*="PageHeaderTitle_heading__"]',
     separatedArtists: 'span[data-test-id="SEPARATED_ARTIST_TITLE"]',
     trackLinks: 'a[href*="/track"]:not([class*="BlockHeader"])',
+    trackContainer: '[class*="Meta_metaContainer"]',
+    playerTrackTitle: '[data-test-id="TRACK_TITLE"]',
+    vibeTrackName: '[data-test-id="VIBE_PLAYERBAR_TRACK_NAME"]',
 }
+export const SCANNED_ATTR = 'data-slopless-scanned'
 
 export type AiMusicBehavior = 'dislike' | 'dislike_if_not_liked' | 'skip' | 'skip_if_not_liked' | 'nothing' | 'like'
 export type DetectionMode = 'paranoid' | 'balance' | 'track_only'
@@ -44,4 +48,11 @@ export function extractTrackId(href: string): string | null {
     if (!href) return null
     const match = href.match(/[?&]trackId=(\d+)|track\/(\d+)/)
     return match ? match[1] || match[2] : null
+}
+
+export function unscanned(...selectors: (string | string[])[]): string {
+    return selectors
+        .flat()
+        .map(s => `${s.trim()}:not([${SCANNED_ATTR}])`)
+        .join(', ')
 }

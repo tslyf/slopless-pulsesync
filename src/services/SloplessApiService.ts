@@ -57,7 +57,18 @@ export default class SloplessApiService {
 
         let realAiTracks = data.aiTracks
         if (data.aiTrackList && Array.isArray(data.aiTrackList)) {
-            realAiTracks = data.aiTrackList.filter((t: any) => t.score > AI_TRACK_THRESHOLD).length
+            realAiTracks = 0
+            data.aiTrackList.forEach((t: any) => {
+                if (t.score > AI_TRACK_THRESHOLD) realAiTracks++
+
+                const trackKey = `track_${t.id}`
+                if (!cache.has(trackKey)) {
+                    cache.set(trackKey, {
+                        data: { score: t.score },
+                        timestamp: Date.now(),
+                    })
+                }
+            })
         }
 
         const percent = realAiTracks / data.totalTracks
@@ -69,9 +80,48 @@ export default class SloplessApiService {
         }
     }
 
-    public static async checkTrack(trackId: string) {
-        const data = await this.fetchWithCache(`track_${trackId}`, `${API_BASE}/track/${trackId}`)
-        if (!data || data.score === null) return { isAi: false }
+    public static async checkTrack(trackId: string, knownArtistIds: string[] = []) {
+        const trackKey = `track_${trackId}`
+
+        if (cache.has(trackKey)) {
+            const cached = cache.get(trackKey)!
+            if (Date.now() - cached.timestamp < CACHE_TTL_SUCCESS) {
+                const data = cached.data
+                if (!data || data.score === null) return { isAi: false, score: 0 }
+                return {
+                    isAi: data.score > AI_TRACK_THRESHOLD,
+                    score: Math.round(data.score * 100),
+                }
+            }
+        }
+
+        let isDefinitivelyClean = false
+        for (const aId of knownArtistIds) {
+            const artistCache = cache.get(`artist_${aId}`)
+
+            if (artistCache && artistCache.data && Date.now() - artistCache.timestamp < CACHE_TTL_SUCCESS) {
+                const aiList = artistCache.data.aiTrackList || []
+                const found = aiList.find((t: any) => String(t.id) === trackId)
+
+                if (found) {
+                    cache.set(trackKey, { data: { score: found.score }, timestamp: Date.now() })
+                    return {
+                        isAi: found.score > AI_TRACK_THRESHOLD,
+                        score: Math.round(found.score * 100),
+                    }
+                }
+
+                isDefinitivelyClean = true
+            }
+        }
+
+        if (isDefinitivelyClean) {
+            cache.set(trackKey, { data: { score: 0 }, timestamp: Date.now() })
+            return { isAi: false, score: 0 }
+        }
+
+        const data = await this.fetchWithCache(trackKey, `${API_BASE}/track/${trackId}`)
+        if (!data || data.score === null) return { isAi: false, score: 0 }
 
         return {
             isAi: data.score > AI_TRACK_THRESHOLD,
