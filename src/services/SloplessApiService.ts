@@ -55,10 +55,15 @@ export default class SloplessApiService {
         const data = await this.fetchWithCache(`artist_${artistId}`, `${API_BASE}/artist/${artistId}`)
         if (!data || data.totalTracks === 0) return { isAi: false }
 
-        const percent = data.aiTracks / data.totalTracks
+        let realAiTracks = data.aiTracks
+        if (data.aiTrackList && Array.isArray(data.aiTrackList)) {
+            realAiTracks = data.aiTrackList.filter((t: any) => t.score > AI_TRACK_THRESHOLD).length
+        }
+
+        const percent = realAiTracks / data.totalTracks
         return {
             isAi: percent >= customThreshold,
-            aiTracks: data.aiTracks,
+            aiTracks: realAiTracks,
             totalTracks: data.totalTracks,
             percent: Math.round(percent * 100),
         }
