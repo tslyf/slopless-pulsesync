@@ -1,6 +1,8 @@
 import SloplessApiService from './SloplessApiService'
 import { t, type Locale } from '../locales'
 import { DOM, extractArtistId, extractTrackId, getSettings } from '../utils'
+import { getAddonSettings } from '@/pulsesync'
+import addonConfig from '../../addon.config.mjs'
 
 export type ElementInfo = {
     element: HTMLElement
@@ -9,21 +11,47 @@ export type ElementInfo = {
 
 export default class ArtistLabelingService {
     protected SLOPLESS_LABEL = 'slopless-label'
+    private scanTimeout: NodeJS.Timeout | null = null
+
+    protected debouncedScan() {
+        if (this.scanTimeout) {
+            clearTimeout(this.scanTimeout)
+        }
+        this.scanTimeout = setTimeout(() => {
+            void this.scan()
+        }, 100)
+    }
 
     protected async scan() {
         const settings = getSettings()
-
         const tasks: Promise<void>[] = []
 
         if (settings.showArtistLabels) {
             tasks.push(this.scanArtists(settings))
+        } else {
+            this.clearLabels('artist')
         }
 
         if (settings.showTrackLabels) {
             tasks.push(this.scanTracks(settings))
+        } else {
+            this.clearLabels('track')
         }
 
         await Promise.all(tasks)
+    }
+
+    protected injectStyles() {
+        if (document.getElementById('slopless-styles')) return
+        const style = document.createElement('style')
+        style.id = 'slopless-styles'
+        style.textContent = `
+            .slopless-text-highlight,
+            .slopless-text-highlight > span:not([class*="slopless-label"]) {
+                color: rgb(239 68 68) !important;
+            }
+        `
+        document.head.appendChild(style)
     }
 
     protected async scanArtists(settings: ReturnType<typeof getSettings>) {
@@ -67,6 +95,8 @@ export default class ArtistLabelingService {
             if (!stats || !stats.isAi) continue
             if (element.querySelector(`span.${this.SLOPLESS_LABEL}`)) continue
 
+            element.classList.add('slopless-text-highlight')
+
             element.insertAdjacentElement(
                 'beforeend',
                 this.createLabel(settings.locale, 'artist', {
@@ -105,6 +135,8 @@ export default class ArtistLabelingService {
             if (!stats || !stats.isAi) continue
             if (element.querySelector(`span.${this.SLOPLESS_LABEL}`)) continue
 
+            element.classList.add('slopless-text-highlight')
+
             element.insertAdjacentElement(
                 'beforeend',
                 this.createLabel(settings.locale, 'track', {
@@ -114,13 +146,27 @@ export default class ArtistLabelingService {
         }
     }
 
+    protected clearLabels(type: 'artist' | 'track') {
+        const labels = document.querySelectorAll(`span.slopless-label-${type}`)
+        if (labels.length === 0) return
+
+        labels.forEach(label => {
+            const parent = label.parentElement
+            if (parent) {
+                parent.removeAttribute('data-slopless-scanned')
+                parent.classList.remove('slopless-text-highlight')
+            }
+            label.remove()
+        })
+    }
+
     protected createLabel(locale: Locale, type: 'artist' | 'track', params?: Record<string, string | number>) {
         const borderColor = 'rgb(239 68 68)'
         const bgColor = 'rgba(239 68 68 / 0.12)'
         const textColor = 'rgb(239 68 68)'
 
         const span = document.createElement('span')
-        span.className = this.SLOPLESS_LABEL
+        span.className = `${this.SLOPLESS_LABEL} slopless-label-${type}`
         span.textContent = t(locale, type === 'artist' ? 'artist.label' : 'track.label')
         span.style.cssText = `margin: 0 6px; padding: 0 6px; border: 1px solid ${borderColor}; border-radius: 4px; background: ${bgColor}; color: ${textColor}; font-size: smaller;`
         span.title = t(locale, type === 'artist' ? 'tooltip.ai' : 'tooltip.track_ai', params)
@@ -129,10 +175,21 @@ export default class ArtistLabelingService {
     }
 
     public async start() {
+        this.injectStyles()
         await this.scan()
+
         const observer = new MutationObserver(() => {
-            void this.scan()
+            this.debouncedScan()
         })
         observer.observe(document.body, { childList: true, subtree: true })
+
+        try {
+            const settingsStore = getAddonSettings(addonConfig.name)
+            settingsStore.onChange(() => {
+                this.debouncedScan()
+            })
+        } catch (e) {
+            console.error('[Slopless] Failed to subscribe to settings', e)
+        }
     }
 }
