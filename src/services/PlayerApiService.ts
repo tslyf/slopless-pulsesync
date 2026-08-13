@@ -56,12 +56,9 @@ export default class PlayerApiService {
         } else if (mode === 'balance' && allAuthorsAreAi) {
             isAi = true
         } else {
-            const trackRes = await SloplessApiService.checkTrack(trackId)
+            const trackRes = await SloplessApiService.checkTrack(trackId, artistIds)
             if (trackRes.isAi) {
                 isAi = true
-            } else if (albumId) {
-                const albumRes = await SloplessApiService.checkAlbum(albumId, settings.artistThreshold)
-                if (albumRes.isAi) isAi = true
             }
         }
 
